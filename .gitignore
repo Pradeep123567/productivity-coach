@@ -1,0 +1,4 @@
+.env
+backend/coach.db
+__pycache__/
+*.pyc
