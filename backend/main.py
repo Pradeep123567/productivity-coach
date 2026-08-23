@@ -23,7 +23,7 @@ if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY not set in .env")
 
 client = Groq(api_key=GROQ_API_KEY)
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "llama-3.1-8b-instant"
 
 app = FastAPI(title="Productivity Coach v2")
 app.add_middleware(
