@@ -26,7 +26,7 @@ client = OpenAI(
     base_url="https://openrouter.ai/api/v1"
 )
 
-MODEL = "meta-llama/llama-3.1-8b-instruct:free"
+MODEL = "meta-llama/llama-3.1-8b-instruct"
 
 app = FastAPI(title="Productivity Coach v2")
 app.add_middleware(
