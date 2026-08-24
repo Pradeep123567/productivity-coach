@@ -1,7 +1,6 @@
 """
-Productivity Coach v2 — FastAPI + Groq + Postgres
-New in v2: auto subtask breakdown when a goal is created (agentic step),
-subtask toggle endpoint, Railway-ready.
+Productivity Coach v2 — FastAPI + OpenRouter + Postgres
+Switched from Groq to OpenRouter for broader model access.
 """
 import os
 import json
@@ -12,18 +11,22 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from groq import Groq
+from openai import OpenAI
 
 import database as db
 
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY not set in .env")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+if not OPENROUTER_API_KEY:
+    raise RuntimeError("OPENROUTER_API_KEY not set in .env")
 
-client = Groq(api_key=GROQ_API_KEY)
-MODEL = "llama-3.1-8b-instant"
+client = OpenAI(
+    api_key=OPENROUTER_API_KEY,
+    base_url="https://openrouter.ai/api/v1"
+)
+
+MODEL = "meta-llama/llama-3.1-8b-instruct:free"
 
 app = FastAPI(title="Productivity Coach v2")
 app.add_middleware(
@@ -167,7 +170,7 @@ def run_tool(name, args):
 
 def run_agent_loop(messages):
     """
-    Keeps calling Groq until no more tool calls come back.
+    Keeps calling the LLM until no more tool calls come back.
     This is what makes it agentic — the model can chain
     create_goal → create_subtasks in one turn automatically.
     """
@@ -183,7 +186,6 @@ def run_agent_loop(messages):
         if not choice.tool_calls:
             return choice.content
 
-        # run all tool calls in this round
         messages.append({
             "role": "assistant",
             "content": choice.content or "",
@@ -198,7 +200,6 @@ def run_agent_loop(messages):
                 "tool_call_id": tc.id,
                 "content": json.dumps(result),
             })
-        # loop back — Groq may want to call another tool
 
 
 class ChatRequest(BaseModel):
